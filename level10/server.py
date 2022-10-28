@@ -1,19 +1,15 @@
 from socket import *
+from time import sleep
 
-s = socket(AF_INET, SOCK_STREAM)
-s.setsockopt(SOL_TCP, TCP_NODELAY, 0)
-s.bind(("0.0.0.0", 6969))
-s.listen(1)
+def accept_and_print(sock):
+  conn, _ = sock.accept()
+  recv_data = conn.recv(1024)
+  print(recv_data.decode('ascii'))
 
-input("PRESS ANY KEY TO CONTINUE")
-print('a')
+with socket(AF_INET, SOCK_STREAM) as sock:
+  sock.bind(("0.0.0.0", 6969))
+  sock.listen(1)
 
-conn, _ = s.accept()
-recv_data = conn.recv(1024)
-print(recv_data)
-
-conn, _ = s.accept()
-recv_data = conn.recv(1024)
-print(recv_data)
-
-s.close()
+  while True:
+    sleep(1)
+    accept_and_print(sock)
