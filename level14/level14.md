@@ -58,7 +58,7 @@
 8048bbb:	0f 84 24 02 00 00    	je     8048de5 <main+0x49f>
 ```
 
-`0x8048de5`위치로 점프한다는 것을 알 수 있고, 
+`0x8048de5`위치로 점프한다는 것을 알 수 있고,
 
 ```
 8048de5:	a1 60 b0 04 08       	mov    0x804b060,%eax
@@ -84,3 +84,67 @@ Breakpoint 1, 0x0804894a in main ()
 (gdb) print (const char *)ft_des(0x8049220)
 $1 = 0x804c008 "7QiHafiNa3HVozsaXkawuYrTstxbpABHD8CPnHJ"
 ```
+
+---
+## Alternative Method
+---
+`getflag` 바이너리를 직접 역공학으로 분석하는 대신, flag14의 권한으로 속이는 방법을 시도해볼 수 있다.
+
+
+1. 먼저, `scp`를 사용해 `/bin/getflag` 바이너리를 snow-crash 밖으로 가지고 온다.
+    ```
+    scp -P 4242 level00@192.168.56.3:/bin/getflag .
+    ```
+
+2. snow-crash에서, `/etc/passwd` 파일을 참조해서, `flag14`가 몇 번의 gid 및 uid를 사용하고 있는 지 확인한다.
+    ```bash
+    $ cat /etc/passwd
+    root:x:0:0:root:/root:/bin/bash
+    [...]
+    level14:x:2014:2014::/home/user/level14:/bin/bash
+    [...]
+    flag14:x:3014:3014::/home/flag/flag14:/bin/bash
+    ```
+    여기에서, `flag14`는 `3014`의 gid 및 uid를 가지는 것을 확인할 수 있다.
+
+3. root 권한을 가진 x86(i386) 환경을 준비한다. `scp`로 가지고 온 `getflag` 바이너리를 전달하는 것도 잊으면 안된다. (여기서는 `Docker`에서 `i386/ubuntu` 이미지 사용.)
+    ```
+    $ docker run -it -v /Users/smun/sc/getflag:/getflag i386/ubuntu
+    WARNING: The requested image's platform (linux/386) does not match the detected host platform (linux/amd64) and no specific platform was requested
+    root@ef34540df8e8:/#
+    ```
+
+4. gid 3014를 가지는 그룹, uid 3014를 가지는 그룹을 생성한다.
+    ```
+    # addgroup --gid 3014 flag14
+    Adding group `flag14' (GID 3014) ...
+    Done.
+    # adduser --gid 3014 --uid 3014 flag14
+    Adding user `flag14' ...
+    Adding new user `flag14' (3014) with group `flag14' ...
+    [...]
+    ```
+
+5. 생성된 `flag14` 계정 및 그룹의 ID를 확인해본다.
+    ```
+    # id -u flag14
+    3014
+    # id -g flag14
+    3014
+    ```
+
+6. 생성된 `flag14` 계정으로 로그인 후, `getflag` 바이너리를 실행한다.
+    ```
+    # su flag14
+    $ ./getflag
+    Check flag.Here is your token : 7QiHafiNa3HVozsaXkawuYrTstxbpABHD8CPnHJ
+    $
+    ```
+
+7. snow-crash에서 해당 token을 사용하여 `flag14`에 로그인해본다.
+    ```
+    level14@SnowCrash:~$ su flag14
+    Password:
+    Congratulation. Type getflag to get the key and send it to me the owner of this livecd :)
+    flag14@SnowCrash:~$
+    ```
